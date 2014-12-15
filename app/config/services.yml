@@ -1,0 +1,82 @@
+# Learn more about services, parameters and containers at
+# http://symfony.com/doc/current/book/service_container.html
+parameters:
+    # History service
+    history_service_class :  AppBundle\Service\History\HistoryService
+    
+    # Cache service
+    cache_service_class:     AppBundle\Service\Cache\MysqlCacheService
+    
+    # Geocoder service
+    geocoder_service_class:  AppBundle\Service\Geocoder\GeocoderService
+    
+    # Twitter service
+    twitter_service_class:   AppBundle\Service\Twitter\TwitterService
+    twitter_connector_class: AppBundle\Service\Twitter\Connector\GuzzleTwitterConnector
+    
+    # Guzzle client
+    class.guzzle.response:  Guzzle\Http\Message\Response
+    class.guzzle.client:    Guzzle\Http\Client
+    class.guzzle.oauthplugin: Guzzle\Plugin\Oauth\OauthPlugin
+    
+    # Twitter API config
+    twitter.baseurl: https://api.twitter.com
+    twitter.config:
+        consumer_key:    4S1E1no7cLZTGyW80H81SpDuY
+        consumer_secret: XvF1CydN0sYnIwV9v45jnNX67L4kGSpt4MpyN58IsSgtlAxC5M
+        token:           124823918-s5qwjGeaaXM8uzEdAv7UddBOM44b8R5tCTGumLiQ
+        token_secret:    UyMoS9lIomXt5mLANPSdhL16L5jU0cTyt7rbKKzDz8bGe
+        
+
+services:
+    # History Service
+    history_service:
+        class: %history_service_class%
+        arguments:
+            - @memcache.default
+         
+    # Cache Service
+    cache_service:
+        class: %cache_service_class%
+        arguments:
+            #- @memcache.default
+            - @repository.tweet_result
+    
+    repository.tweet_result:
+        class: AppBundle\Repository\TweetResultRepository
+        factory_service: doctrine.orm.entity_manager
+        factory_method: getRepository
+        arguments: [ AppBundle:Twitter\TweetResult ]
+        
+    
+    # Geocoder Service
+    geocoder_service:
+        class: %geocoder_service_class%
+        arguments:
+            - @bazinga_geocoder.geocoder
+        
+    # Twitter Service
+    twitter_service:
+        class: %twitter_service_class%
+        arguments: 
+            - @twitter_connector
+    
+    # Twitter Connector
+    twitter_connector:
+        class: %twitter_connector_class%
+        arguments:
+            - @guzzle.twitter.client
+    
+    # Twitter http client (Guzzle) and OAuth plugin
+    # ref: http://gonzalo123.com/2013/02/04/how-to-configure-symfonys-service-container-to-use-twitter-api/
+    guzzle.twitter.client:
+        class: %class.guzzle.client%
+        arguments: [%twitter.baseurl%]
+        calls:
+          - [addSubscriber, [@guzzle.twitter.oauthplugin]]
+          
+    guzzle.twitter.oauthplugin:
+        class: %class.guzzle.oauthplugin%
+        arguments: [%twitter.config%]
+       
+    

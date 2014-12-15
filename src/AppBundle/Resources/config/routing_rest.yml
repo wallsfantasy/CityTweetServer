@@ -1,0 +1,14 @@
+app_location:
+    type: rest
+    name_prefix: api_
+    resource:    AppBundle\Controller\LocationRestController
+    
+app_rest_twitter:
+    type:   rest
+    name_prefix: api_
+    resource:    AppBundle\Controller\TwitterRestController
+    
+app_history:
+    type: rest
+    name_prefix: api_
+    resource:   AppBundle\Controller\HistoryRestController
