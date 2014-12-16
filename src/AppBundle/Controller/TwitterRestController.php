@@ -8,6 +8,8 @@ use FOS\RestBundle\Controller\FOSRestController;
 use Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag;
 // association
 use AppBundle\Entity\Twitter\TweetResult;
 use Lsw\MemcacheBundle\Cache\MemcacheInterface;
@@ -34,6 +36,8 @@ class TwitterRestController extends FOSRestController
     // Default values
     static $cacheTtl         = 3600;
     static $defaultLocation  = 'Bangkok';
+    // Session
+    static $sessionKeyVisitorId = 'visitorId';
 
     //[GET] /api/locations
     /**
@@ -56,11 +60,16 @@ class TwitterRestController extends FOSRestController
     public function getTweetsAction(Request $req)
     {
         // get parameters and initialize default values
-        $cityName = $req->get(static::$paramCityName);
-        $cityName = ($cityName !== null) ? $cityName : self::$defaultLocation;
+        $cityName = $req->get(static::$paramCityName) ?: static::$defaultLocation;
 
-        // get sessionId to add history
-        $sessionId = $req->getSession()->getId();
+        // get/init visitor ID within session
+        $session = $req->getSession();
+        $sessionId = $session->get(static::$sessionKeyVisitorId);
+        if($sessionId === null) {
+            $sessionId = uniqid();
+            $session->set(static::$sessionKeyVisitorId, $sessionId);
+        }
+        
         $result = $this->getTweetResultByCityName($cityName, $sessionId);
 
         $code     = 200;

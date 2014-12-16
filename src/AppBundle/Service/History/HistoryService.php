@@ -35,7 +35,7 @@ class HistoryService implements HistoryServiceInterface
     public function add($sessionId, $key)
     {
         $historySessionId = $this->getHistorySessionId($sessionId);
-        
+
         $exist = $this->_storage->get($historySessionId);
         if(!$exist) {
             // initialize new session history
