@@ -21,6 +21,8 @@ class HistoryRestController extends FOSRestController
 {
     // Services
     static $historyService = 'history_service';
+    // Session
+    static $sessionKeyVisitorId = 'visitorId';
     
     //[GET] /api/histories
     /**
@@ -40,7 +42,7 @@ class HistoryRestController extends FOSRestController
     public function getHistoriesAction(Request $req)
     {
         $session = $req->getSession();
-        $sessionId = $session->getId();
+        $sessionId = $session->get(static::$sessionKeyVisitorId);
         
         $histories = $this->getHistories($sessionId);
         
